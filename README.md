@@ -1,5 +1,5 @@
-# Lucene Vector Space Model (VSM) Basic Search Engine
-
+# Basic Search Engine
+### Lucene Vector Space Model (VSM)
 ## Links
 
 - [Scoring Formula - Lucene API](https://lucene.apache.org/core/8_0_0/core/org/apache/lucene/search/similarities/TFIDFSimilarity.html)
