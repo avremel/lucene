@@ -147,8 +147,3 @@ class SearchEngine:
 			field_matches = '.\n'.join(['{} - {}'.format(key, value) for key, value in doc['field_matches'].items()])
 			print(field_matches)
 			print('------------------------------------------------')
-# example
-products = json.load( open('movies.json') )
-search_engine = SearchEngine(docs=products, use_field_norms=False)
-field_boosts = {'title': 1.1}
-query = search_engine.query("gi joe ww2 documentary", field_boosts=field_boosts, num_results=10)
