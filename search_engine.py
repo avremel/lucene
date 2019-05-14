@@ -15,31 +15,35 @@ def inverse_doc_freq(doc_count, inverted_index, term):
 	else:
 		return 0
 
+def get_inverted_index(docs):
+	inverted_index = defaultdict(set)
+
+	for idx, doc in enumerate(docs):
+		for field_name, field in doc.items():
+			for term in set(tokenize_field(field)):
+				inverted_index[term].add(idx)
+
+	return inverted_index
+
 def get_vector_norm(vector):
-	return sqrt(sum([value['score']**2 for key, value in vector.items()]))
+	return sqrt(sum(value['score']**2 for value in vector.values()))
 
 def get_query_vector(doc_count, inverted_index, tokenized_query):
-	query_vector = dict()
-	for term in tokenized_query:
-		idf = inverse_doc_freq(doc_count, inverted_index, term)
-		query_vector[term] = {'score': idf}
-
-	return query_vector
+	return 	{
+			term: {'score': inverse_doc_freq(doc_count, inverted_index, term)}
+			for term in tokenized_query
+		}
 
 def get_doc_with_weights(doc, doc_count, inverted_index, use_field_norms):
 	term_weights_in_docs = dict()
 	for field_name, field in doc.items():
 		term_weights_in_docs[field_name] = {}
 		field_length = len(str(field))
-		field_norm = 1/sqrt(field_length)
 		terms = tokenize_field(field)
 		for term in set(terms):
 			tf = sqrt(terms.count(term))
 			idf = inverse_doc_freq(doc_count, inverted_index, term)
-			if use_field_norms:
-				weight = tf * idf * field_norm
-			else:
-				weight = tf * idf
+			weight = tf * idf * ( 1/sqrt(field_length) if use_field_norms else 1)
 			term_weights_in_docs[field_name][term] = weight
 	return term_weights_in_docs
 
@@ -50,11 +54,10 @@ def get_doc_vectors(docs, doc_count, inverted_index, tokenized_query):
 		doc_term_scores = dict()
 		for field_name, terms in doc['weights'].items():
 			for term, score in terms.items():
-				if term in tokenized_query:
-					if score > doc_term_scores.get(term, {}).get('score', 0):
-						field_text = doc['doc'][field_name]
-						term_score = {'field_name': field_name, 'field_text': field_text,'score': score}
-						doc_term_scores[term] = term_score
+				if term in tokenized_query and score > doc_term_scores.get(term, {}).get('score', 0):
+					field_text = doc['doc'][field_name]
+					term_score = {'field_name': field_name, 'field_text': field_text,'score': score}
+					doc_term_scores[term] = term_score
 		if doc_term_scores:
 			doc_vectors[doc_idx] = doc_term_scores
 	return doc_vectors
@@ -63,8 +66,7 @@ def get_ranking_list(docs, num_terms_in_query, query_vector, doc_vectors, num_re
 	ranking_list = []
 	query_vector_norm = get_vector_norm(query_vector)
 	for doc_idx, doc_vector in doc_vectors.items():
-		dot_product = 0
-		matching_terms = 0
+		dot_product = matching_terms = 0
 		for query_term, query_score in query_vector.items():
 			if query_term in doc_vector:
 				field_name = doc_vector[query_term]['field_name']
@@ -76,17 +78,14 @@ def get_ranking_list(docs, num_terms_in_query, query_vector, doc_vectors, num_re
 		doc_vector_norm = get_vector_norm(doc_vector)
 		dot_product = dot_product / (query_vector_norm * doc_vector_norm)
 		field_matches = dict()
-		terms = []
-		for key, value in doc_vector.items():
-			terms.append(key)
+		for value in doc_vector.values():
 			field_matches[value['field_name']] = value['field_text']
-		terms = [term for term in doc_vector.keys()]
 		ranking_list.append(
 			{
 				'doc_idx': doc_idx,
 				'ranking': round(dot_product, 4),
 				'field_matches': field_matches,
-				'terms': ', '.join(terms),
+				'terms': ', '.join(doc_vector.keys()),
 			}
 		)
 	ranking_list = sorted(ranking_list, key=lambda x: x['ranking'], reverse=True)
@@ -103,14 +102,7 @@ class SearchEngine:
 		self.index_documents(docs)
 
 	def create_inverted_index(self, docs):
-		inverted_index = defaultdict(set)
-
-		for idx, doc in enumerate(docs):
-			for field_name, field in doc.items():
-				for term in set(tokenize_field(field)):
-					inverted_index[term].add(idx)
-
-		self.inverted_index = inverted_index
+		self.inverted_index = get_inverted_index(docs)
 
 	def index_documents(self, docs):
 		doc_index = dict()
@@ -141,8 +133,7 @@ class SearchEngine:
 		print('Search Results')
 		print('------------------------------------------------')
 		print('{0:<7} {1:<7} {2:<5} {3:<30}'.format('Ranking', 'Score', 'Idx', 'Terms'))
-		for idx, doc in enumerate(self.ranking_list):
-			ranking_positition = idx + 1
+		for ranking_positition, doc in enumerate(self.ranking_list, 1):
 			print('{0:<7} {1:<7} {2:<5} {3:<30}'.format(ranking_positition, doc['ranking'], doc['doc_idx'], doc['terms']))
 			field_matches = '.\n'.join(['{} - {}'.format(key, value) for key, value in doc['field_matches'].items()])
 			print(field_matches)
