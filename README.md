@@ -18,6 +18,9 @@ Weight of term in document field = TF * IDF * fieldNorm
 
 Weight of term in query = IDF * field_boost_exponent
 
+1. Multiply each term_score in query with matching term_score of doc[n] to produce the dot_product of query_vectory <-> doc[n]_vector.
+2. dot_product * ( matching_terms / num_terms_in_query ) which punishes match that is missing some query terms.
+3. dot_product / norm( query_vector ) * norm( doc_vector )
 ## Instructions
 
 Easiest way to get started, clone repo and run `python -i search_engine.py`.
