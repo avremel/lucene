@@ -25,7 +25,7 @@ Some tokenizations ([see here](https://lucene.apache.org/solr/guide/7_6/filter-d
 ### Vectors
 ![alt text](https://www.intmath.com/vectors/img/235-3D-vector.png)
 
-The vector model views both the query and the searchable documents as a vector on a lti-dimensional axis.
+The vector model views both the query and the searchable documents as a vector on a mullti-dimensional graph.
 
 ### TD*IDF
 Terminology
