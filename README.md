@@ -27,6 +27,8 @@ Some tokenizations ([see here](https://lucene.apache.org/solr/guide/7_6/filter-d
 
 The vector model views both the query and the searchable documents as a vector on a mullti-dimensional graph.
 
+Each axis of the graph represents a term and the value of the axis is the weight of the term within the doc or query.
+
 ### TD*IDF
 Terminology
 
