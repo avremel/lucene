@@ -43,7 +43,7 @@ Practically, the following formula is generally used:
 
 *fieldNorm* = 1 / sqrt( num_chars_in_field)
 
-Weight of term in document field = TF * IDF * fieldNorm
+Weight of term in field = TF * IDF * fieldNorm
 
 Weight of term in query = IDF * field_boost_exponent
 (TF is irrelevant, users usually don't duplicate terms in query. Same with fieldNorm, searches are usually short)
