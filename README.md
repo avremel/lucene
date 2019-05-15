@@ -23,14 +23,19 @@ Some tokenizations ([see here](https://lucene.apache.org/solr/guide/7_6/filter-d
 ## Scoring Formula
 
 ### Vectors
-TODO
+![alt text](https://www.intmath.com/vectors/img/235-3D-vector.png)
+
+The vector model views both the query and the searchable documents as a vector on a lti-dimensional axis.
 
 ### TD*IDF
 Terminology
 
 *Doc*: Doc DB row, JSON object, CSV row, etc. which contains fields
+
 *TF*: Term Frequency
+
 *IDF*: Inverse Doc Frequency
+
 *Weight*: Vaulue of term within a field of doc
 
 The weight of a matching term is scored by the frequency of the term within the given field (TF) multiplied by how rare the term is within the set of documents (IDF).
