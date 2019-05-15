@@ -22,15 +22,33 @@ Some tokenizations ([see here](https://lucene.apache.org/solr/guide/7_6/filter-d
 
 ## Scoring Formula
 
-**TermFrequency** sqrt(field.count(term))
+### Vectors
+TODO
 
-**InverseDocFrequency** log( doc_count / num_docs_which_contain_term ) + 1 ) + 1
+### TD*IDF
+Terminology
 
-**fieldNorm** 1 / sqrt( num_chars_in_field)
+*Doc*: Doc DB row, JSON object, CSV row, etc. which contains fields
+*TF*: Term Frequency
+*IDF*: Inverse Doc Frequency
+*Weight*: Vaulue of term within a field of doc
+
+The weight of a matching term is scored by the frequency of the term within the given field (TF) multiplied by how rare the term is within the set of documents (IDF).
+
+Practically, the following formula is generally used:
+
+*TF* = sqrt(field.count(term))
+
+*IDF* = log( doc_count / num_docs_which_contain_term ) + 1 ) + 1
+
+*fieldNorm* = 1 / sqrt( num_chars_in_field)
 
 Weight of term in document field = TF * IDF * fieldNorm
 
 Weight of term in query = IDF * field_boost_exponent
+(TF is irrelevant, users usually don't duplicate terms in query. Same with fieldNorm, searches are usually short)
+
+### Summary of Calculation
 
 1. Multiply each term_score in query with matching term_score of doc[n] to produce the dot_product of query_vectory <-> doc[n]_vector.
 2. If term exists in more than one field within the same document, pick the field with highest scoring match ([see here](https://lucene.apache.org/solr/guide/7_0/the-dismax-query-parser.html#the-tie-tie-breaker-parameter)).
@@ -38,7 +56,7 @@ Weight of term in query = IDF * field_boost_exponent
 4. dot_product / norm( query_vector ) * norm( doc_vector )
 ## Instructions
 
-Easiest way to get started, clone repo and run `python -i search_engine.py`.
+Clone repo and run `python -i search_engine.py`.
 
 ```python
 products = json.load( open('movies.json') )
