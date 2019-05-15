@@ -16,7 +16,7 @@ Some tokenizations ([see here](https://lucene.apache.org/solr/guide/7_6/filter-d
 - Split field by white space
 - Remove possessives: "Man’s" -> "Man
 - Stemming: "Jumping" -> "Jump"
-- Phonetic: BMPM is popular, "In its current implementation, BMPM' is primarily concerned with matching surnames of Ashkenazic Jews..." (from the paper)[https://stevemorse.org/phonetics/bmpm.htm]
+- Phonetic: BMPM is popular, "In its current implementation, BMPM' is primarily concerned with matching surnames of Ashkenazic Jews..." [from the paper](https://stevemorse.org/phonetics/bmpm.htm)
 - N-Gram: Each combination of n chars for a term. "hello" for 2-3 chars is ["he", "el", "ll", "lo", "hel", "ell", "llo"]
 - Edge-N-Gram: Each combination of n chars for a term from start of word. "hello" for 3+ chars is ["hel", "hell", "hello"]. Very useful for autosuggest while user typing.
 
