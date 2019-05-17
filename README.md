@@ -64,7 +64,9 @@ Practically, the a variation of the this formula is generally used:
 
 For a query, TF is irrelevant since query rarely contain duplicate words. fieldNorm is also not important; queries are usually concise.
 
-Here is an example for a query of `gi joe ww2 documentary`. `fieldNorms` are set to `True` and `field_boosts` are `{'title': 1.1, 'genre': 1.5}`:
+Here is an example for a query of `gi joe ww2 documentary`. 
+
+`fieldNorms` are set to `True` and `field_boosts` are `{'title': 1.1, 'genre': 1.5}`:
 
 ```python
 # query vector
@@ -101,14 +103,44 @@ Here is an example for a query of `gi joe ww2 documentary`. `fieldNorms` are set
 'year': {'1945': 2.625807684692801}}
 ```
 
-### Compare Vectors
+### Vectors Similarity (cosine similarity)
+Since everything is a vector we can use cosine similarity to compare the vectors. 0 indicates no similarity, while 1 indicates that the two vectors are identical.
 
-`query_vector = {'joe': 5.642844374217615, gi}
+*Step 1 - dot product.*
 
-1. Multiply each term_score in query with matching term_score of doc[n] to produce the dot_product of query_vectory <-> doc[n]_vector.
-2. If term exists in more than one field within the same document, pick the field with highest scoring match ([see here](https://lucene.apache.org/solr/guide/7_0/the-dismax-query-parser.html#the-tie-tie-breaker-parameter)).
-3. dot_product * ( matching_terms / num_terms_in_query ) which punishes match that is missing some query terms.
-4. dot_product / norm( query_vector ) * norm( doc_vector )
+Note that since 'gi' and 'joe' were found in a boosted field ('title'), we apply the exponent (1.1).
+
+```python
+query['documentary'] * doc['documentary'] +
+query['gi']**field_boost['title'] * doc['gi'] +
+query['joe']**field_boost['title'] * doc['joe'] +
+query['ww2'] * doc['ww2'] +
+= dot_product
+```
+
+*Step 2 - coord (coordination factor) punish score for missing query terms* 
+
+```python
+dot_product = dot_product * ( matching_terms / num_terms_in_query )
+```
+
+*Step 3 - coord (coordination factor) punish score for missing query terms* 
+```python
+def norm(vector):
+	return sqrt(sum(value['score']**2 for value in vector.values()))
+
+dot_product / norm( query_vector ) * norm( doc_vector )
+```
+
+This is how the code prints out the top result:
+
+```
+------------------------------------------------
+Ranking Score   Idx   Terms                         
+1       0.5555  11838 joe, gi                       
+title - The Story of G.I. Joe
+------------------------------------------------
+```
 ## Instructions
 
 Clone repo and run `python -i search_engine.py`.
