@@ -9,7 +9,7 @@
 ## Use cases
 1. Search products (query -> docs)
 2. Similiar products  on a product page (doc -> docs)
-3. Personalized suggestions base on user history (docs -> docs) using [k-mean clustering](https://en.wikipedia.org/wiki/K-means_clustering)
+3. Personalized suggestions base on user history (docs -> docs)
 
 ## Tokenization
 Search is a balance of precision and recall. Lucene is dumb by default; only exact words will be a match leading to great precision, but terrible recall (too many false negatives). To better search relevance, all terms go through a tokenization process (docs at index time, query at runtime). Tokenization associates different forms of a term so the recall will be greater.
@@ -28,15 +28,14 @@ Some tokenizations ([see here](https://lucene.apache.org/solr/guide/7_6/filter-d
 ## Scoring Formula
 
 ### Terminology
-*Doc*: Record from CSV/JSON/HTML/PDF/DB, etc.
-
-*Term*: Subset of field, could be letter, word, or any n-chars.
-
-*TF*: Term Frequency
-
-*IDF*: Inverse Doc Frequency or rarity of term within doc
-
-*Weight*: Vaulue of term within a field of doc
+| Term | Explanation  |
+|---|---|
+| Doc  | Record from CSV/JSON/HTML/PDF/DB, etc. |
+| Term | Subset of field, could be letter, word, or any n-chars. |
+| Weight | Value of term within a field of doc |
+| TF | Term Frequency within a field |
+| IDF  | Rarity of term within doc (Inverse Doc Frequency) 1/DF |
+| fieldNorm | Shorter fields have more weight than longer ones |
 
 ### Intro
 ![alt text](https://www.intmath.com/vectors/img/235-3D-vector.png)
@@ -55,48 +54,83 @@ There are two components to understand:
 
 The weight of a matching term is scored by the frequency of the term within the given field (TF) multiplied by how rare the term is within the set of documents (IDF).
 
-Practically, the following formula is generally used:
+Practically, the a variation of the this formula is generally used:
 
-*TF* = sqrt(field.count(term))
+| Name | Formula | Query | Document |
+|---|---|---|---|
+| TF  | sqrt(field.count(term)) | NO |YES|
+| IDF | log( doc_count / num_docs_which_contain_term ) + 1 ) + 1 |YES|YES|
+| fieldNorm | 1 / sqrt( num_chars_in_field) |NO|YES|
 
-*IDF* = log( doc_count / num_docs_which_contain_term ) + 1 ) + 1
+For a query, TF is irrelevant since query rarely contain duplicate words. fieldNorm is also not important; queries are usually concise.
 
-*fieldNorm* = 1 / sqrt( num_chars_in_field)
-
-Weight of term in field = TF * IDF * fieldNorm
-
-Weight of term in query = IDF * field_boost_exponent
-
-(TF is irrelevant, users usually don't duplicate terms in query. Same with fieldNorm, searches are usually short)
+Here is an example for a query of `gi joe ww2 documentary`. `fieldNorms` are set to `True` and `field_boosts` are `{'title': 1.1, 'genre': 1.5}`:
 
 ```python
-# for a query "gi joe ww2 documentary"
-{
-	'joe': {'score': 5.642844374217615}, 
-	'gi': {'score': 8.965719169172438}, 
-	'ww2': {'score': 0}, 
-	'documentary': {'score': 5.015173140485178}
-}
-```
+# query vector
+{'documentary': {'score': 5.015173140485178},
+ 'gi': {'score': 8.965719169172438},
+ 'joe': {'score': 5.642844374217615},
+ 'ww2': {'score': 0}}
 
+# top result vector for doc 11838
+{'gi': {'field_name': 'title',
+        'field_text': 'The Story of G.I. Joe',
+        'score': 1.956480321545204},
+ 'joe': {'field_name': 'title',
+         'field_text': 'The Story of G.I. Joe',
+         'score': 1.2313695942718068}}
 
-```python
-# first result
-{
-	'joe': {
-		'field_name': 'title',
-		'field_text': 'The Story of G.I. Joe',
-		'score': 5.642844374217615
-		},
-	'gi': {
-		'field_name': 'title',
-		'field_text': 'The Story of G.I. Joe',
-		'score': 8.965719169172438
-		}
-	}
+# original record
+{'cast': ['Burgess Meredith', 'Robert Mitchum'],
+ 'genres': ['War'],
+ 'title': 'The Story of G.I. Joe',
+ 'year': 1945}
+
+# term 'gi'
+count_of_term_in_field = terms.count(term) = 1
+tf = sqrt(count_of_term_in_field) = 1.0
+
+doc_count = 28795
+gi_freq_all_docs = 10
+idf = log( doc_count / gi_freq_all_docs + 1 ) + 1 = 8.965719169172438
+
+field_length = 21
+fieldNorm = 1/sqrt(field_length) = 0.2182178902359924
+
+gi_weight =  1.956480321545204
+
+# term 'joe'
+
+count_of_term_in_field = terms.count(term) = 1
+tf = sqrt(count_of_term_in_field) = 1.0
+
+doc_count = 28795
+joe_freq_all_docs = 280
+idf = log( doc_count / joe_freq_all_docs + 1 ) + 1 = 5.642844374217615
+
+field_length = 21
+fieldNorm = 1/sqrt(field_length) = 0.2182178902359924
+
+gi_weight = 1.2313695942718068
+ 
+# doc weights from index
+{'cast': {'burgess': 1.2106351225005683,
+          'meredith': 1.1461898093155403,
+          'mitchum': 1.1096031454459072,
+          'robert': 0.6646962483369104},
+'genres': {'war': 1.8221135281634746},
+'title': {'gi': 1.956480321545204,
+           'joe': 1.2313695942718068,
+           'of': 0.7117316180615629,
+           'story': 1.3784931651895422,
+           'the': 0.5162296287278824},
+'year': {'1945': 2.625807684692801}}
 ```
 
 ### Compare Vectors
+
+`query_vector = {'joe': 5.642844374217615, gi}
 
 1. Multiply each term_score in query with matching term_score of doc[n] to produce the dot_product of query_vectory <-> doc[n]_vector.
 2. If term exists in more than one field within the same document, pick the field with highest scoring match ([see here](https://lucene.apache.org/solr/guide/7_0/the-dismax-query-parser.html#the-tie-tie-breaker-parameter)).
