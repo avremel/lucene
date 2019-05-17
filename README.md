@@ -68,6 +68,15 @@ Here is an example for a query of `gi joe ww2 documentary`.
 
 `fieldNorms` are set to `True` and `field_boosts` are `{'title': 1.1, 'genre': 1.5}`:
 
+```
+------------------------------------------------
+Ranking Score   Idx   Terms                         
+1       0.5555  11838 joe, gi                       
+title - The Story of G.I. Joe
+------------------------------------------------
+```
+Let's step through how this doc scored:
+
 ```python
 # query vector
 {'documentary': {'score': 5.015173140485178},
@@ -106,7 +115,7 @@ Here is an example for a query of `gi joe ww2 documentary`.
 ### Vectors Similarity (cosine similarity)
 Since everything is a vector we can use cosine similarity to compare the vectors. 0 indicates no similarity, while 1 indicates that the two vectors are identical.
 
-*Step 1 - dot product.*
+**Step 1** - dot product.
 
 Note that since 'gi' and 'joe' were found in a boosted field ('title'), we apply the exponent (1.1).
 
@@ -116,15 +125,24 @@ query['gi']**field_boost['title'] * doc['gi'] +
 query['joe']**field_boost['title'] * doc['joe'] +
 query['ww2'] * doc['ww2'] +
 = dot_product
+
+5.015173140485178 * 0 +
+8.965719169172438^1.1 * 1.956480321545204 +
+5.642844374217615^1.1 * 1.2313695942718068 +
+0 * 0 = dot_product
+
+dot_product = 30.1044142369
+
 ```
 
-*Step 2 - coord (coordination factor) punish score for missing query terms* 
+**Step 2** - coord (coordination factor) punish score for missing query terms
 
 ```python
 dot_product = dot_product * ( matching_terms / num_terms_in_query )
+dot_product = 30.1044142369 * (2/4) = 15.0522071184
 ```
 
-*Step 3 - coord (coordination factor) punish score for missing query terms* 
+**Step 3** - coord (coordination factor) punish score for missing query terms
 ```python
 def norm(vector):
 	return sqrt(sum(value['score']**2 for value in vector.values()))
@@ -132,15 +150,6 @@ def norm(vector):
 dot_product / norm( query_vector ) * norm( doc_vector )
 ```
 
-This is how the code prints out the top result:
-
-```
-------------------------------------------------
-Ranking Score   Idx   Terms                         
-1       0.5555  11838 joe, gi                       
-title - The Story of G.I. Joe
-------------------------------------------------
-```
 ## Instructions
 
 Clone repo and run `python -i search_engine.py`.
