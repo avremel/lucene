@@ -9,7 +9,7 @@
 ## Use cases
 1. Search products (query -> docs)
 2. Similiar products  on a product page (doc -> docs)
-3. Personalized suggestions base on user history (docs -> docs)
+3. Personalized suggestions base on user history (docs -> docs) [k-means](https://en.wikipedia.org/wiki/K-means_clustering)
 
 ## Tokenization
 Search is a balance of precision and recall. Lucene is dumb by default; only exact words will be a match leading to great precision, but terrible recall (too many false negatives). To better search relevance, all terms go through a tokenization process (docs at index time, query at runtime). Tokenization associates different forms of a term so the recall will be greater.
