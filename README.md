@@ -76,7 +76,7 @@ Weight of term in query = IDF * field_boost_exponent
 	'gi': {'score': 8.965719169172438}, 
 	'ww2': {'score': 0}, 
 	'documentary': {'score': 5.015173140485178}
-	}
+}
 ```
 
 
@@ -97,8 +97,6 @@ Weight of term in query = IDF * field_boost_exponent
 ```
 
 ### Compare Vectors
-
-`query_vector = {'joe': 5.642844374217615, gi}
 
 1. Multiply each term_score in query with matching term_score of doc[n] to produce the dot_product of query_vectory <-> doc[n]_vector.
 2. If term exists in more than one field within the same document, pick the field with highest scoring match ([see here](https://lucene.apache.org/solr/guide/7_0/the-dismax-query-parser.html#the-tie-tie-breaker-parameter)).
