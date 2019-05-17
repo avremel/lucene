@@ -86,33 +86,6 @@ Here is an example for a query of `gi joe ww2 documentary`. `fieldNorms` are set
  'genres': ['War'],
  'title': 'The Story of G.I. Joe',
  'year': 1945}
-
-# term 'gi'
-count_of_term_in_field = terms.count(term) = 1
-tf = sqrt(count_of_term_in_field) = 1.0
-
-doc_count = 28795
-gi_freq_all_docs = 10
-idf = log( doc_count / gi_freq_all_docs + 1 ) + 1 = 8.965719169172438
-
-field_length = 21
-fieldNorm = 1/sqrt(field_length) = 0.2182178902359924
-
-gi_weight =  1.956480321545204
-
-# term 'joe'
-
-count_of_term_in_field = terms.count(term) = 1
-tf = sqrt(count_of_term_in_field) = 1.0
-
-doc_count = 28795
-joe_freq_all_docs = 280
-idf = log( doc_count / joe_freq_all_docs + 1 ) + 1 = 5.642844374217615
-
-field_length = 21
-fieldNorm = 1/sqrt(field_length) = 0.2182178902359924
-
-gi_weight = 1.2313695942718068
  
 # doc weights from index
 {'cast': {'burgess': 1.2106351225005683,
