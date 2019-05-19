@@ -9,7 +9,7 @@
 ## Use cases
 1. Search products (query -> docs)
 2. Similiar products  on a product page (doc -> docs)
-3. Personalized suggestions base on user history (docs -> docs) [k-means](https://en.wikipedia.org/wiki/K-means_clustering)
+3. Personalized suggestions based on user history (docs -> docs)
 
 ## Tokenization
 Search is a balance of precision and recall. Lucene is dumb by default; only exact words will be a match leading to great precision, but terrible recall (too many false negatives). To better search relevance, all terms go through a tokenization process (docs at index time, query at runtime). Tokenization associates different forms of a term so the recall will be greater.
@@ -68,15 +68,6 @@ Here is an example for a query of `gi joe ww2 documentary`.
 
 `fieldNorms` are set to `True` and `field_boosts` are `{'title': 1.1, 'genre': 1.5}`:
 
-```
-------------------------------------------------
-Ranking Score   Idx   Terms                         
-1       0.5555  11838 joe, gi                       
-title - The Story of G.I. Joe
-------------------------------------------------
-```
-Let's step through how this doc scored:
-
 ```python
 # query vector
 {'documentary': {'score': 5.015173140485178},
@@ -112,8 +103,9 @@ Let's step through how this doc scored:
 'year': {'1945': 2.625807684692801}}
 ```
 
-### Vectors Similarity (cosine similarity)
+### Vectors Similarity
 Since everything is a vector we can use cosine similarity to compare the vectors. 0 indicates no similarity, while 1 indicates that the two vectors are identical.
+
 
 **Step 1** - dot product.
 
@@ -129,7 +121,7 @@ query['ww2'] * doc['ww2'] +
 5.015173140485178 * 0 +
 8.965719169172438^1.1 * 1.956480321545204 +
 5.642844374217615^1.1 * 1.2313695942718068 +
-0 * 0 = dot_product
+0 * 0 = 30.1044142369
 
 dot_product = 30.1044142369
 
@@ -142,14 +134,26 @@ dot_product = dot_product * ( matching_terms / num_terms_in_query )
 dot_product = 30.1044142369 * (2/4) = 15.0522071184
 ```
 
-**Step 3** - coord (coordination factor) punish score for missing query terms
+**Step 3** - cosine similarity (rebalance to 0-1 decimal)
 ```python
 def norm(vector):
 	return sqrt(sum(value['score']**2 for value in vector.values()))
 
 dot_product / norm( query_vector ) * norm( doc_vector )
 ```
+15.0522071184 / ( 11.720826527218524 * 2.3117279957405756)
+cosine_similarity = 0.55552705533
+```
 
+This is how the code prints out the top result:
+
+```
+------------------------------------------------
+Ranking Score   Idx   Terms                         
+1       0.5555  11838 joe, gi                       
+title - The Story of G.I. Joe
+------------------------------------------------
+```
 ## Instructions
 
 Clone repo and run `python -i search_engine.py`.
