@@ -4,6 +4,23 @@ Lucene is a Java library which provides information retrieval capabilities. Solr
 
 The purpose of this project is to demonstrate the scoring formula which Lucene uses to calculate search relevance.
 
+## Instructions
+
+Clone repo and run `python -i search_engine.py`.
+
+```python
+products = json.load( open('movies.json') )
+search_engine = SearchEngine(docs=products, use_field_norms=False)
+field_boosts = {'title': 1.1}
+query = search_engine.query("gi joe ww2 documentary", field_boosts=field_boosts, num_results=10)
+```
+
+Options
+
+- **use_field_norms** (boolean): Factor in field length for TD-IDF scoring
+- **num_results** (int): Total results to display
+- **field_boosts** (dict[string, int]): Boost certain fields by an exponent
+
 ## Links
 
 - [Scoring Formula - Lucene API](https://lucene.apache.org/core/8_0_0/core/org/apache/lucene/search/similarities/TFIDFSimilarity.html)
@@ -166,22 +183,4 @@ Ranking Score   Idx   Terms
 1       0.5555  11838 joe, gi                       
 title - The Story of G.I. Joe
 ------------------------------------------------
-```
-
-## Instructions
-
-Clone repo and run `python -i search_engine.py`.
-
-```python
-products = json.load( open('movies.json') )
-search_engine = SearchEngine(docs=products, use_field_norms=False)
-field_boosts = {'title': 1.1}
-query = search_engine.query("gi joe ww2 documentary", field_boosts=field_boosts, num_results=10)
-
-```
-## Options
-
-- **use_field_norms** (boolean): Factor in field length for TD-IDF scoring
-- **num_results** (int): Total results to display
-- **field_boosts** (dict[string, int]): Boost certain fields by an exponent
 ```
