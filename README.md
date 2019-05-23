@@ -1,5 +1,9 @@
 # Simple Search Engine
 
+Lucene is a Java library which provides information retrieval capabilities. Solr/Elastic Search run as stand-alone servers and provide convenient wrappers on top of Lucene's search functionality. They are both popular options for internet search engines.
+
+The purpose of this project is to demonstrate the scoring formula which Lucene uses to calculate search relevance.
+
 ## Links
 
 - [Scoring Formula - Lucene API](https://lucene.apache.org/core/8_0_0/core/org/apache/lucene/search/similarities/TFIDFSimilarity.html)
